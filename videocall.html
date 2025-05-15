@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>100ms Test</title>
+    <script defer src="https://unpkg.com/@100mslive/roomkit-prebuilt@latest/dist/bundle.js"></script>
+</head>
+
+<body>
+    <h2>Test 100ms Prebuilt</h2>
+    <button onclick="check()">Check HMSPrebuilt</button>
+
+    <script>
+        function check() {
+            if (typeof window.HMSPrebuilt === "undefined") {
+                alert("❌ HMSPrebuilt is NOT available!");
+            } else {
+                alert("✅ HMSPrebuilt is loaded!");
+            }
+        }
+    </script>
+</body>
+
+</html>
