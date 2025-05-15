@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Call & Code</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: white;
+            color: #333;
+            transition: transform 0.2s, background-color 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="button-container">
+        <button class="btn" onclick="alert('Create Call clicked')">Create Call</button>
+        <button class="btn" onclick="alert('Join Call clicked')">Join Call</button>
+
+        <!-- CODE Button navigates to editor.html in the same tab -->
+        <button class="btn" onclick="window.location.href = 'editor.html'">Code</button>
+    </div>
+</body>
+
+</html>

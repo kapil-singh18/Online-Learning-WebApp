@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Runner with Judge0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #editor {
+            height: 300px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            font-family: monospace;
+        }
+
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+        }
+
+        select {
+            padding: 5px;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Run Code with Judge0 API</h2>
+    <select id="language" onchange="changeLanguage()"></select>
+    <button onclick="runCode()">Run</button>
+    <button onclick="saveCode()">Save Code</button>
+    <button onclick="downloadCode()">Download Code</button>
+
+    <div id="editor"></div>
+
+    <h3>Input:</h3>
+    <textarea id="input" placeholder="Enter custom input..." rows="5"></textarea>
+
+    <h3>Output:</h3>
+    <pre id="output">Waiting for code...</pre>
+
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+
+    <script>
+        const JUDGE0_API_KEY = '438c800adamsh5d6bd3db49a2202p1b7b4fjsndb98cfe4e49d'; // Replace with your Judge0 RapidAPI Key
+        const JUDGE0_API_HOST = "judge0-ce.p.rapidapi.com";
+        let currentLangId = 71; // Default to Python 3
+        let editor;
+
+        require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs" } });
+        require(["vs/editor/editor.main"], function () {
+            editor = monaco.editor.create(document.getElementById("editor"), {
+                value: 'print("Hello, World!")',
+                language: "python",
+                theme: "vs-dark",
+                automaticLayout: true,
+            });
+        });
+
+        async function loadLanguages() {
+            try {
+                const res = await fetch(`https://${JUDGE0_API_HOST}/languages`, {
+                    method: "GET",
+                    headers: {
+                        "X-RapidAPI-Key": '438c800adamsh5d6bd3db49a2202p1b7b4fjsndb98cfe4e49d',
+                        "X-RapidAPI-Host": JUDGE0_API_HOST
+                    }
+                });
+
+                const languages = await res.json();
+                const select = document.getElementById("language");
+                select.innerHTML = "";
+
+                languages.forEach(lang => {
+                    const opt = document.createElement("option");
+                    opt.value = lang.id;
+                    opt.textContent = `${lang.name}`;
+                    select.appendChild(opt);
+                });
+
+                select.value = currentLangId;
+            } catch (err) {
+                console.error("Failed to load languages:", err);
+                alert("Failed to load languages. Check API key and internet connection.");
+            }
+        }
+
+        function detectMonacoLang(name) {
+            name = name.toLowerCase();
+            if (name.includes("python")) return "python";
+            if (name.includes("c++")) return "cpp";
+            if (name.includes("c") && !name.includes("c++")) return "c";
+            if (name.includes("java")) return "java";
+            if (name.includes("javascript") || name.includes("node")) return "javascript";
+            if (name.includes("php")) return "php";
+            if (name.includes("ruby")) return "ruby";
+            if (name.includes("swift")) return "swift";
+            return "plaintext";
+        }
+
+        function changeLanguage() {
+            const select = document.getElementById("language");
+            const langId = parseInt(select.value);
+            const langName = select.options[select.selectedIndex].text;
+
+            currentLangId = langId;
+            const monacoLang = detectMonacoLang(langName);
+            monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
+        }
+
+        async function runCode() {
+            const sourceCode = editor.getValue();
+            const stdin = document.getElementById("input").value;
+            document.getElementById("output").textContent = "Running...";
+
+            try {
+                const res = await fetch(`https://${JUDGE0_API_HOST}/submissions?base64_encoded=false&wait=true`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-RapidAPI-Key": '438c800adamsh5d6bd3db49a2202p1b7b4fjsndb98cfe4e49d',
+                        "X-RapidAPI-Host": JUDGE0_API_HOST
+                    },
+                    body: JSON.stringify({
+                        source_code: sourceCode,
+                        stdin: stdin,
+                        language_id: currentLangId
+                    })
+                });
+
+                const result = await res.json();
+
+                if (result.stderr) {
+                    document.getElementById("output").textContent = "Error:\n" + result.stderr;
+                } else if (result.compile_output) {
+                    document.getElementById("output").textContent = "Compilation Error:\n" + result.compile_output;
+                } else {
+                    document.getElementById("output").textContent = result.stdout || "No output";
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById("output").textContent = "Execution failed. See console for details.";
+            }
+        }
+
+        function saveCode() {
+            localStorage.setItem("savedCode", editor.getValue());
+            alert("Code saved locally!");
+        }
+
+        function downloadCode() {
+            const code = editor.getValue();
+            const blob = new Blob([code], { type: "text/plain" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "code.txt";
+            a.click();
+        }
+
+        loadLanguages();
+    </script>
+</body>
+
+</html>
